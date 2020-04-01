@@ -98,8 +98,8 @@ broker2.createService({
     }
 })
 
-broker1.start()
-    .then(() => broker2.start())
+broker2.start()
+    .then(() => broker1.start())
     .then(() => broker1.call('fileReader.getFileContents', { filePath: './test.txt' }))
     .then(res => console.log('Read file contents:', res))
     .catch(err => console.error(`Error occurred! ${err.message}`));
