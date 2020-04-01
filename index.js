@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { ServiceBroker } = require("moleculer");
+const { ServiceBroker } = require('moleculer');
 
 const broker1 = new ServiceBroker({
     nodeID: 'node1',
@@ -27,7 +27,7 @@ broker1.createService({
         async getFileContents(ctx) {
             const { filePath } = ctx.params;
             const stream = fs.createReadStream(filePath);
-            return ctx.call('fileReader.readStreamWithDataEvents', stream); // This one never returns
+            return ctx.call('fileReader.readStreamWithDataEvents', stream); // This one never returns a result to the caller
             //return ctx.call('fileReader.readStreamWithReadableEvent', stream); // This one calls readStreamWithReadableEvent twice
 
             // return ctx.call('service2.readStreamWithDataEvents', stream); // This one works fine
@@ -41,7 +41,7 @@ broker1.createService({
                     chunks.push(chunk);
                 });
                 ctx.params.on('end', () => {
-                    resolve(Buffer.concat(chunks));
+                    resolve(Buffer.concat(chunks)); // resolving after the 'end' event fires
                 });
             })
             return result.toString();
@@ -56,7 +56,7 @@ broker1.createService({
                         chunks.push(chunk);
                         chunk = ctx.params.read();
                     }
-                    resolve(Buffer.concat(chunks));
+                    resolve(Buffer.concat(chunks)); // resolving once we have all the data but before the 'end' event fires
                 });
             });
             return result.toString();
@@ -75,7 +75,7 @@ broker2.createService({
                     chunks.push(chunk);
                 });
                 ctx.params.on('end', () => {
-                    resolve(Buffer.concat(chunks));
+                    resolve(Buffer.concat(chunks)); // resolving after the 'end' event fires
                 });
             })
             return result.toString();
@@ -90,7 +90,7 @@ broker2.createService({
                         chunks.push(chunk);
                         chunk = ctx.params.read();
                     }
-                    resolve(Buffer.concat(chunks));
+                    resolve(Buffer.concat(chunks)); // resolving once we have all the data but before the 'end' event fires
                 });
             });
             return result.toString();
@@ -100,6 +100,6 @@ broker2.createService({
 
 broker1.start()
     .then(() => broker2.start())
-    .then(() => broker1.call("fileReader.getFileContents", { filePath: './test.txt' }))
-    .then(res => console.log("Read file contents:", res))
+    .then(() => broker1.call('fileReader.getFileContents', { filePath: './test.txt' }))
+    .then(res => console.log('Read file contents:', res))
     .catch(err => console.error(`Error occurred! ${err.message}`));
