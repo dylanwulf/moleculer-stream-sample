@@ -8,7 +8,7 @@ const broker1 = new ServiceBroker({
         url: 'nats://localhost:4222',
     },
     disableBalancer: true,
-    serializer: 'Notepack',
+    logLevel: 'debug',
 });
 
 const broker2 = new ServiceBroker({
@@ -18,7 +18,7 @@ const broker2 = new ServiceBroker({
         url: 'nats://localhost:4222',
     },
     disableBalancer: true,
-    serializer: 'Notepack',
+    logLevel: 'debug',
 });
 
 broker1.createService({
@@ -27,11 +27,11 @@ broker1.createService({
         async getFileContents(ctx) {
             const { filePath } = ctx.params;
             const stream = fs.createReadStream(filePath);
-            // return ctx.call('fileReader.readStreamWithDataEvents', stream); // This one never returns
-            // return ctx.call('fileReader.readStreamWithReadableEvent', stream); // This one calls readStreamWithReadableEvent twice
+            return ctx.call('fileReader.readStreamWithDataEvents', stream); // This one never returns
+            //return ctx.call('fileReader.readStreamWithReadableEvent', stream); // This one calls readStreamWithReadableEvent twice
 
-            return ctx.call('streamReader.readStreamWithDataEvents', stream); // This one works fine
-            // return ctx.call('streamReader.readStreamWithReadableEvent', stream); // This one works fine
+            // return ctx.call('service2.readStreamWithDataEvents', stream); // This one works fine
+            // return ctx.call('service2.readStreamWithReadableEvent', stream); // This one works fine
         },
         async readStreamWithDataEvents(ctx) {
             console.log('called fileReader.readStreamWithDataEvents');
@@ -65,7 +65,7 @@ broker1.createService({
 });
 
 broker2.createService({
-    name: 'streamReader',
+    name: 'service2',
     actions: {
         async readStreamWithDataEvents(ctx) {
             console.log('called streamReader.readStreamWithDataEvents');
